@@ -42,9 +42,9 @@ prepostinstall_checks()
   fi
 
   RUBYBIN=$(which ruby 2>/dev/null)
-  if [ -z "$GITBIN" ];
+  if [ -z "$RUBYBIN" ];
   then
-    $PKG_INSTALL $PKG_INSTALL_UNATTENDED git
+    $PKG_INSTALL $PKG_INSTALL_UNATTENDED ruby
 
     RUBYBIN=$(which ruby 2>/dev/null)
     if [ -z "$RUBYBIN" ];
@@ -144,7 +144,7 @@ puppet_install()
   if [ "${FACT_OSFAMILY}" == "RedHat" ];
   then
     rpm -Uvh https://yum.puppet.com/puppet5/puppet5-release-el-${FACT_OPERATINGSYSTEMMAJRELEASE}.noarch.rpm
-    $PKG_INSTALL $PKG_INSTALL_UNATTENDED puppet-agent
+    $PKG_INSTALL $PKG_INSTALL_UNATTENDED puppet-agent --disablerepo=* --enablerepo=puppet5
   elif [ "${FACT_OSFAMILY}" == "Debian" ];
   then
     if [ "${FACT_OPERATINGSYSTEMMAJRELEASE}" == "18.04" ] || [ "${FACT_OPERATINGSYSTEMMAJRELEASE}" == "20.04" ] ;
@@ -157,7 +157,7 @@ puppet_install()
       apt-get update
       $PKG_INSTALL $PKG_INSTALL_UNATTENDED puppet-agent
     fi
-    
+
   elif [ "${FACT_OSFAMILY}" == "Suse" ];
   then
     echo "SuSE unsupported"
@@ -179,25 +179,19 @@ puppet_install()
 
   echo "PUPPET VERSION: $(puppet --version)"
 
-  gem list | grep deep_merge >/dev/null 2>&1
-
-  if [ "$?" -ne 0 ];
-  then
-    gem install deep_merge
-  fi
-
-  gem list | grep r10k >/dev/null 2>&1
-
-  if [ "$?" -ne 0 ];
-  then
-    gem install r10k
-  fi
-
   /opt/puppetlabs/puppet/bin/gem list | grep r10k >/dev/null 2>&1
 
   if [ "$?" -ne 0 ];
   then
-    /opt/puppetlabs/puppet/bin/gem install r10k
+
+    /opt/puppetlabs/puppet/bin/gem install multipart-post -v 2.1.1
+    /opt/puppetlabs/puppet/bin/gem install cri -v 2.15.10
+    /opt/puppetlabs/puppet/bin/gem install deep_merge
+    /opt/puppetlabs/puppet/bin/gem install semantic_puppet -v 1.0.4
+    /opt/puppetlabs/puppet/bin/gem install fast_gettext -v 1.1.2
+    /opt/puppetlabs/puppet/bin/gem install multipart-post -v 2.1.1
+    /opt/puppetlabs/puppet/bin/gem install jwt -v 2.2.3
+    /opt/puppetlabs/puppet/bin/gem install r10k -v 3.12.1
   fi
 
 }
@@ -217,7 +211,7 @@ if [ ! -d "/opt/puppet-masterless/.git" ];
 then
   cd "/opt"
   rm -fr puppet-masterless
-  git clone https://github.com/jordiprats/puppet-masterless
+  git clone https://github.com/NTTCom-MS/bash-puppetmasterless puppet-masterless
 else
   cd "/opt/puppet-masterless"
   git pull origin master
